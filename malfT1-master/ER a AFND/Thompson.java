@@ -74,10 +74,11 @@ public class Thompson {
         public void display() {
             for (Trans t : transitions) {
                 System.out.println("(" + t.state_from + ", " + t.trans_symbol +
-                ", " + t.state_to + ")");
+                        ", " + t.state_to + ")");
             }
         }
     }
+
     /*
      * kleene() - Operador de expresión regular de mayor precedencia. Algoritmo de
      * Thompson para el cierre de Kleene.
@@ -193,13 +194,21 @@ public class Thompson {
         return true;
     }
 
-    public static List<Integer> findMatchingPositions(String input, String regex) {
+    public static List<Integer> findMatchingPositions(AFD afd, String input, String regex) {
         List<Integer> matchPositions = new ArrayList<>();
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(input);
+        int inputLength = input.length();
+        int regexLength = regex.length();
+        int currentIndex = 0;
 
-        while (matcher.find()) {
-            matchPositions.add(matcher.start());
+        while (currentIndex < inputLength) {
+            int matchLength = matchAFD(afd, input, currentIndex);
+
+            if (matchLength > 0) {
+                matchPositions.add(currentIndex + matchLength - regexLength);
+                currentIndex += matchLength;
+            } else {
+                currentIndex++;
+            }
         }
 
         return matchPositions;
@@ -353,7 +362,6 @@ public class Thompson {
             }
         }
 
-        
         System.out.println("Vista del AFND:");
         System.out.println("K=" + operands.peek().states);
         System.out.println("Sigma={a, b}");
@@ -361,7 +369,7 @@ public class Thompson {
         operands.peek().display();
         System.out.println("s=q0");
         System.out.println("F=" + "[" + operands.peek().final_state + "]");
-        
+
         return operands.pop();
     }
 
@@ -460,7 +468,7 @@ public class Thompson {
         afd.display();
         System.out.println("s=" + afd.initial_state);
         System.out.println("F=" + afd.final_states);
-           
+
         return afd;
     }
 
@@ -482,6 +490,7 @@ public class Thompson {
                 // Convertir el AFND en un AFD y mostrarlo.
                 System.out.println("Ingresa tu ER para AFND");
                 AFND afnd = compile(sc.nextLine());
+                System.out.println("\nAFND:");
 
             }
             if (line.equals(":AFD")) {
@@ -500,18 +509,15 @@ public class Thompson {
                 Pattern pattern = Pattern.compile(regex);
                 Matcher matcher = pattern.matcher(input);
 
-                List<Integer> matchPositions = new ArrayList<>();
                 while (matcher.find()) {
-                    matchPositions.add(matcher.start());
-                }
-
-                if (matchPositions.isEmpty()) {
-                    System.out.println("No se encontraron coincidencias.");
-                } else {
-                    System.out.println("Las coincidencias comienzan en las siguientes posiciones:");
-                    System.out.println(matchPositions);
+                    int start = matcher.start();
+                    int end = matcher.end();
+                    String matchedText = input.substring(start, end);
+                    System.out.println("Se encontró una coincidencia en la posición " + start + " - " + end);
+                    System.out.println("Texto coincidente: " + matchedText);
                 }
             }
-        }       
+
+        }
     }
 }
